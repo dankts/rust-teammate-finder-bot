@@ -69,7 +69,12 @@ public class StartCommandHandler {
 
             }
             case REGISTRATION_AGE -> {
-                userBuffer.setAge(Integer.valueOf(text));
+                try {
+                    userBuffer.setAge(Integer.valueOf(text));
+                } catch (NumberFormatException e) {
+                    sendMessage(chatId, "❌ Введите возраст цифрами");
+                    return;
+                }
                 userStateService.setUserState(chatId, UserStates.REGISTRATION_HOURS);
                 sendMessage(chatId, "⏱\uFE0F Сколько у тебя часов в Rust?\n");
             }
