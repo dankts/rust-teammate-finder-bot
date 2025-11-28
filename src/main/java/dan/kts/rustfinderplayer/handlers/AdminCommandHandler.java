@@ -4,11 +4,13 @@ import dan.kts.rustfinderplayer.exceptions.UserNotFoundException;
 import dan.kts.rustfinderplayer.service.UserService;
 import dan.kts.rustfinderplayer.util.SendMessageBot;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AdminCommandHandler {
@@ -54,8 +56,17 @@ public class AdminCommandHandler {
 
     private void sendAllUserMessage(String message) {
         List<Long> usersChatId = userService.getUsersChatId();
+        log.info("Start send message to all users - {}", usersChatId.size());
         for (Long l : usersChatId) {
             sendMessageBot.sendMessage(l, message);
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                log.warn("Send message to all users interrupted!");
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
+        log.info("End send message to all users");
     }
 }
