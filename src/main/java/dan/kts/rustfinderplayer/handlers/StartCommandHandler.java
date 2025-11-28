@@ -6,6 +6,7 @@ import dan.kts.rustfinderplayer.entity.states.UserStates;
 import dan.kts.rustfinderplayer.service.BotService;
 import dan.kts.rustfinderplayer.service.UserService;
 import dan.kts.rustfinderplayer.service.UserStateService;
+import dan.kts.rustfinderplayer.util.SendMessageBot;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -14,8 +15,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static dan.kts.rustfinderplayer.util.SendMessageBot.sendMessage;
 
 @Component
 @RequiredArgsConstructor
@@ -26,6 +25,7 @@ public class StartCommandHandler {
     private final BotService botService;
     private final UserStateService userStateService;
     private final ProfileCommandHandler profileCommandHandler;
+    private final SendMessageBot sendMessageBot;
     private final Map<Long, PartialUser> buffer = new ConcurrentHashMap<>();
 
     public void handle(Update update) {
@@ -45,9 +45,9 @@ public class StartCommandHandler {
             mainMenuHandler.getMenu(chatId);
         } else {
             userStateService.setUserState(chatId, UserStates.REGISTRATION_NICKNAME);
-            sendMessage(chatId, botService.startCommand());
+            sendMessageBot.sendMessage(chatId, botService.startCommand());
             buffer.putIfAbsent(chatId, new PartialUser());
-            sendMessage(chatId, "\uD83D\uDC64 Напишите мне свой игровой никнейм, который будут видеть все.\n");
+            sendMessageBot.sendMessage(chatId, "\uD83D\uDC64 Напишите мне свой игровой никнейм, который будут видеть все.\n");
         }
     }
 
@@ -65,18 +65,18 @@ public class StartCommandHandler {
             case REGISTRATION_NICKNAME -> {
                 userBuffer.setUsername(text);
                 userStateService.setUserState(chatId, UserStates.REGISTRATION_AGE);
-                sendMessage(chatId, "⏱\uFE0F Сколько тебе лет?\n");
+                sendMessageBot.sendMessage(chatId, "⏱\uFE0F Сколько тебе лет?\n");
 
             }
             case REGISTRATION_AGE -> {
                 try {
                     userBuffer.setAge(Integer.valueOf(text));
                 } catch (NumberFormatException e) {
-                    sendMessage(chatId, "❌ Введите возраст цифрами");
+                    sendMessageBot.sendMessage(chatId, "❌ Введите возраст цифрами");
                     return;
                 }
                 userStateService.setUserState(chatId, UserStates.REGISTRATION_HOURS);
-                sendMessage(chatId, "⏱\uFE0F Сколько у тебя часов в Rust?\n");
+                sendMessageBot.sendMessage(chatId, "⏱\uFE0F Сколько у тебя часов в Rust?\n");
             }
             case REGISTRATION_HOURS -> {
                 userBuffer.setHours(Integer.valueOf(text));
@@ -86,7 +86,7 @@ public class StartCommandHandler {
             case REGISTRATION_ROLE -> {
                 userBuffer.setRole(Role.getFromdisplayName(text));
                 userStateService.setUserState(chatId, UserStates.REGISTRATION_FIND);
-                sendMessage(chatId, "Ищите ли вы сейчас тиммейта? (да, нет)");            }
+                sendMessageBot.sendMessage(chatId, "Ищите ли вы сейчас тиммейта? (да, нет)");            }
             case REGISTRATION_FIND -> {
                 userBuffer.setFind(text.equalsIgnoreCase("да"));
                 User user = User.builder()
@@ -100,7 +100,7 @@ public class StartCommandHandler {
                         .build();
                 userService.registerUser(user);
                 userStateService.clearUserState(chatId);
-                sendMessage(chatId, "Регистрация прошла успешно!");
+                sendMessageBot.sendMessage(chatId, "Регистрация прошла успешно!");
                 buffer.remove(chatId);
                 mainMenuHandler.getMenu(chatId);
             }

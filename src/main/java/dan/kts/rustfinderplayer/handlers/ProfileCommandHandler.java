@@ -4,6 +4,7 @@ import dan.kts.rustfinderplayer.entity.enums.Role;
 import dan.kts.rustfinderplayer.entity.states.UserStates;
 import dan.kts.rustfinderplayer.service.UserService;
 import dan.kts.rustfinderplayer.service.UserStateService;
+import dan.kts.rustfinderplayer.util.SendMessageBot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,8 +23,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import java.util.ArrayList;
 import java.util.List;
 
-import static dan.kts.rustfinderplayer.util.SendMessageBot.*;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -31,9 +30,10 @@ public class ProfileCommandHandler {
 
     private final UserService userService;
     private final UserStateService userStateService;
+    private final SendMessageBot sendMessageBot;
 
     public void getMyProfile(CallbackQuery callbackQuery) {
-        executeSafe(EditMessageText.builder()
+        sendMessageBot.executeSafe(EditMessageText.builder()
                 .chatId(callbackQuery.getMessage().getChatId())
                 .parseMode(ParseMode.HTML)
                 .text(userService.getUserProfile(callbackQuery.getMessage().getChatId()))
@@ -43,17 +43,7 @@ public class ProfileCommandHandler {
     }
 
     public void getMyProfileAsNewMessage(Long chatId) {
-        sendMessageWithInlineKeyboard(chatId, userService.getUserProfile(chatId), keyboardProfile(chatId));
-    }
-
-    public void getMyProfile(Update update) {
-        executeSafe(EditMessageText.builder()
-                .chatId(update.getMessage().getChatId())
-                .parseMode(ParseMode.HTML)
-                .text(userService.getUserProfile(update.getMessage().getChatId()))
-                .messageId(update.getMessage().getMessageId())
-                .replyMarkup(keyboardProfile(update.getMessage().getChatId()))
-                .build());
+        sendMessageBot.sendMessageWithInlineKeyboard(chatId, userService.getUserProfile(chatId), keyboardProfile(chatId));
     }
 
     public void changeRole(Update update) {
@@ -75,10 +65,10 @@ public class ProfileCommandHandler {
         if (role != null) {
             userService.updateRole(chatId, role);
             userStateService.clearUserState(chatId);
-            sendMessage(chatId, "Роль изменена!");
-            sendMessageWithInlineKeyboard(chatId, userService.getUserProfile(chatId), keyboardProfile(chatId));
+            sendMessageBot.sendMessage(chatId, "Роль изменена!");
+            sendMessageBot.sendMessageWithInlineKeyboard(chatId, userService.getUserProfile(chatId), keyboardProfile(chatId));
         } else {
-            sendMessage(chatId, "Неверная роль! Выберите роль из меню ниже.");
+            sendMessageBot.sendMessage(chatId, "Неверная роль! Выберите роль из меню ниже.");
         }
     }
 
@@ -86,7 +76,7 @@ public class ProfileCommandHandler {
     public void getSteamLinkAndSave(Update update) {
         if (update.getMessage().getText().contains("steamcommunity.com")) {
             userService.inLinkSteam(update.getMessage().getChatId(), update.getMessage().getText());
-            sendMessage(update.getMessage().getChatId(), "Ваш профиль сохранен!");
+            sendMessageBot.sendMessage(update.getMessage().getChatId(), "Ваш профиль сохранен!");
             getMyProfileAsNewMessage(update.getMessage().getChatId());
         }
         userStateService.clearUserState(update.getMessage().getChatId());
@@ -144,7 +134,7 @@ public class ProfileCommandHandler {
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(true)
                 .build();
-        executeSafe(SendMessage.builder()
+        sendMessageBot.executeSafe(SendMessage.builder()
                 .chatId(chatId)
                 .text("Выберите роль")
                 .replyMarkup(replyKeyboardMarkup)

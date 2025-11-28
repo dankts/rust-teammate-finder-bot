@@ -1,8 +1,6 @@
 package dan.kts.rustfinderplayer.util;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -11,18 +9,16 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 @Slf4j
-@RequiredArgsConstructor
 @Component
 public class SendMessageBot {
 
-    private static TelegramClient telegramClient;
+    private final TelegramClient telegramClient;
 
-    @Autowired
-    private void setTelegramClient(TelegramClient telegramClient) {
-        SendMessageBot.telegramClient = telegramClient;
+    public SendMessageBot(TelegramClient telegramClient) {
+        this.telegramClient = telegramClient;
     }
 
-    public static void sendMessage(Long chatId, String text) {
+    public void sendMessage(Long chatId, String text) {
         executeSafe(SendMessage.builder()
                 .parseMode("HTML")
                 .chatId(chatId)
@@ -30,7 +26,7 @@ public class SendMessageBot {
                 .build());
     }
 
-    public static void sendMessageWithInlineKeyboard(Long chatId, String text, InlineKeyboardMarkup inlineKeyboardMarkup) {
+    public void sendMessageWithInlineKeyboard(Long chatId, String text, InlineKeyboardMarkup inlineKeyboardMarkup) {
         executeSafe(SendMessage.builder()
                 .chatId(chatId)
                 .parseMode("HTML")
@@ -39,7 +35,7 @@ public class SendMessageBot {
                 .build());
     }
 
-    public static void executeSafe(SendMessage sendMessage) {
+    public void executeSafe(SendMessage sendMessage) {
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
@@ -47,7 +43,7 @@ public class SendMessageBot {
         }
     }
 
-    public static void executeSafe(EditMessageText editMessageText) {
+    public void executeSafe(EditMessageText editMessageText) {
         try {
             telegramClient.execute(editMessageText);
         } catch (TelegramApiException e) {

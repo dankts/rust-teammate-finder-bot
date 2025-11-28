@@ -8,6 +8,7 @@ import dan.kts.rustfinderplayer.service.PaginationStateService;
 import dan.kts.rustfinderplayer.service.RequestService;
 import dan.kts.rustfinderplayer.service.UserService;
 import dan.kts.rustfinderplayer.service.UserStateService;
+import dan.kts.rustfinderplayer.util.SendMessageBot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,8 +22,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import java.util.ArrayList;
 import java.util.List;
 
-import static dan.kts.rustfinderplayer.util.SendMessageBot.*;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -34,6 +33,7 @@ public class HandleCommandCallbackQuery {
     private final UserStateService userStateService;
     private final RequestService requestService;
     private final PaginationStateService paginationStateService;
+    private final SendMessageBot sendMessageBot;
 
 
     public void handleCallbackQuery(Update update) {
@@ -70,7 +70,7 @@ public class HandleCommandCallbackQuery {
             }
             case "sign_steam": {
                 userStateService.setUserState(chatId, UserStates.AWAITING_STEAM_LINK);
-                sendMessage(chatId, "Введите аккаунт Steam");
+                sendMessageBot.sendMessage(chatId, "Введите аккаунт Steam");
                 break;
             }
             case "incoming_requests": {
@@ -81,10 +81,10 @@ public class HandleCommandCallbackQuery {
                 if (data.startsWith("view_profile_")) {
                     handleViewProfile(data, callbackQuery, chatId);
                 } else if (data.startsWith("send_request_")) {
-                    sendMessage(chatId, "Заявка отправлена!");
+                    sendMessageBot.sendMessage(chatId, "Заявка отправлена!");
                     String[] split = data.split("_");
                     Long chatIdOwnerProfile = Long.parseLong(split[2]);
-                    sendMessage(chatIdOwnerProfile, "У вас новая заявка от игрока <b>" + userService.getUser(chatId).getNickname() + "</b>");
+                    sendMessageBot.sendMessage(chatIdOwnerProfile, "У вас новая заявка от игрока <b>" + userService.getUser(chatId).getNickname() + "</b>");
                     requestService.saveRequest(chatIdOwnerProfile, chatId);
                 } else if (data.startsWith("accept_request_")) {
                     handleAcceptRequest(data, chatId, messageId);
@@ -108,7 +108,7 @@ public class HandleCommandCallbackQuery {
         int sizeRequests = requests.size();
 
         if (requestService.getRequestsWhenStatus(chatId, RequestStatus.PENDING).isEmpty()) {
-            sendMessage(chatId, "📭 Нет входящих заявок");
+            sendMessageBot.sendMessage(chatId, "📭 Нет входящих заявок");
             mainMenuHandler.getMenu(chatId);
             return;
         }
@@ -137,7 +137,7 @@ public class HandleCommandCallbackQuery {
                 fromUser.getSteamLink(),
                 fromUser.getSteamLink() == null ? "Не указан профиль" : "Открыть профиль");
 
-        executeSafe(EditMessageText.builder()
+        sendMessageBot.executeSafe(EditMessageText.builder()
                 .parseMode("HTML")
                 .text(text)
                 .chatId(chatId)
@@ -148,7 +148,7 @@ public class HandleCommandCallbackQuery {
 
     private void handleViewProfile(String data, CallbackQuery callbackQuery, Long chatId) {
         String[] split = data.split("_");
-        executeSafe(EditMessageText.builder()
+        sendMessageBot.executeSafe(EditMessageText.builder()
                 .parseMode("HTML")
                 .text(userService.getTeammateProfile(Long.parseLong(split[2])))
                 .messageId(callbackQuery.getMessage().getMessageId())
@@ -184,7 +184,7 @@ public class HandleCommandCallbackQuery {
         requestService.updateRequest(chatId, chatIdOwnerRequest, RequestStatus.ACCEPTED);
         adjustPaginationAfterAction(chatId);
         handleIncomingRequests(chatId, messageId);
-        sendMessage(chatId, """
+        sendMessageBot.sendMessage(chatId, """
         ✅ <b>Отлично! Вы приняли заявку от %s</b>
         
         📞 <b>Что делать дальше?</b>
@@ -203,7 +203,7 @@ public class HandleCommandCallbackQuery {
                 chatIdOwnerRequest,
                 userService.getUser(chatIdOwnerRequest).getSteamLink()
         ));
-        sendMessage(chatIdOwnerRequest, """
+        sendMessageBot.sendMessage(chatIdOwnerRequest, """
                 🎉 <b>Заявка принята!</b>
                 
                 Игрок <b>%s</b> принял вашу заявку на команду! 🤝
@@ -317,7 +317,7 @@ public class HandleCommandCallbackQuery {
                 .text("Назад").callbackData("return_to_main_menu").build());
         rows.add(inlineKeyboardRow);
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(rows);
-        executeSafe(EditMessageText.builder()
+        sendMessageBot.executeSafe(EditMessageText.builder()
                 .text("Выбери кого ищешь:")
                 .messageId(messageId)
                 .replyMarkup(inlineKeyboardMarkup)

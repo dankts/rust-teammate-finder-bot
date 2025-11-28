@@ -25,6 +25,7 @@ public class UpdateCustomer implements LongPollingSingleThreadUpdateConsumer {
     private final StartCommandHandler startCommandHandler;
     private final UserStateService userStateService;
     private final UserService userService;
+    private final SendMessageBot sendMessageBot;
 
     @Value("${bot.admin.chatid}")
     private Long adminChatId;
@@ -34,7 +35,7 @@ public class UpdateCustomer implements LongPollingSingleThreadUpdateConsumer {
     public void consume(Update update) {
         Long chatId = getChatId(update);
         if (userService.isBanned(chatId)) {
-            SendMessageBot.sendMessage(chatId, "Вы забанены");
+            sendMessageBot.sendMessage(chatId, "Вы забанены");
             return;
         }
         if (update.hasMessage() && update.getMessage().hasText()) {

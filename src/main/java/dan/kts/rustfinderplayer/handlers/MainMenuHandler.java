@@ -1,6 +1,7 @@
 package dan.kts.rustfinderplayer.handlers;
 
 import dan.kts.rustfinderplayer.util.SendMessageBot;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -9,7 +10,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 
 @Component
+@RequiredArgsConstructor
 public class MainMenuHandler {
+
+    private final SendMessageBot sendMessageBot;
 
     public InlineKeyboardMarkup createMainMenu() {
         return InlineKeyboardMarkup.builder()
@@ -26,11 +30,11 @@ public class MainMenuHandler {
     }
 
     public void getMenu(Long chatId) {
-        SendMessageBot.sendMessageWithInlineKeyboard(chatId, "🏠 Главное меню:\nВыбери, что тебя интересует:", createMainMenu());
+        sendMessageBot.sendMessageWithInlineKeyboard(chatId, "🏠 Главное меню:\nВыбери, что тебя интересует:", createMainMenu());
     }
 
     public void getMenuFromReturn(CallbackQuery callbackQuery) {
-        SendMessageBot.executeSafe(EditMessageText.builder()
+        sendMessageBot.executeSafe(EditMessageText.builder()
                         .chatId(callbackQuery.getMessage().getChatId())
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .text("🏠 Главное меню:\nВыбери, что тебя интересует:")

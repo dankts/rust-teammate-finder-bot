@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import static dan.kts.rustfinderplayer.util.SendMessageBot.sendMessage;
-
 import java.util.List;
 
 @Component
@@ -16,6 +14,7 @@ import java.util.List;
 public class AdminCommandHandler {
 
     private final UserService userService;
+    private final SendMessageBot sendMessageBot;
 
     public void handleCommand(Update update) {
         String text = update.getMessage().getText();
@@ -38,25 +37,25 @@ public class AdminCommandHandler {
     private void banUser(Long adminChatId, Long chatId) {
         try {
             userService.banUser(chatId);
-            sendMessage(adminChatId, "Пользователь с чат ид " + chatId + " забанен!");
+            sendMessageBot.sendMessage(adminChatId, "Пользователь с чат ид " + chatId + " забанен!");
         } catch (UserNotFoundException e) {
-            sendMessage(adminChatId, "Пользователь с чат ид " + chatId + " не найден!");
+            sendMessageBot.sendMessage(adminChatId, "Пользователь с чат ид " + chatId + " не найден!");
         }
     }
 
     private void unBanUser(Long adminChatId, Long chatId) {
         try {
             userService.unBanUser(chatId);
-            sendMessage(adminChatId, "Пользователь с чат ид " + chatId + " разбанен!");
+            sendMessageBot.sendMessage(adminChatId, "Пользователь с чат ид " + chatId + " разбанен!");
         } catch (UserNotFoundException e) {
-            sendMessage(adminChatId, "Пользователь с чат ид " + chatId + " не найден!");
+            sendMessageBot.sendMessage(adminChatId, "Пользователь с чат ид " + chatId + " не найден!");
         }
     }
 
     private void sendAllUserMessage(String message) {
         List<Long> usersChatId = userService.getUsersChatId();
         for (Long l : usersChatId) {
-            SendMessageBot.sendMessage(l, message);
+            sendMessageBot.sendMessage(l, message);
         }
     }
 }
