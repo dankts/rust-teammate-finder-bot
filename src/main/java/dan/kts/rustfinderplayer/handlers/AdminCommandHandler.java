@@ -30,8 +30,7 @@ public class AdminCommandHandler {
             Long chatId = Long.parseLong(split[1]);
             unBanUser(adminChatId, chatId);
         } else if (text.startsWith("/getAllUserMessage")) {
-            String[] split = text.split(" ");
-            String message = split[1];
+            String message = text.substring(19);
             sendAllUserMessage(message);
         }
     }
