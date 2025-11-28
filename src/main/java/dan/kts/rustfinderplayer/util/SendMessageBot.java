@@ -39,7 +39,7 @@ public class SendMessageBot {
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
-            log.error("Ошибка при отправке сообщения");
+            log.error("Ошибка при отправке сообщения {}", e.getMessage());
         }
     }
 
@@ -47,7 +47,7 @@ public class SendMessageBot {
         try {
             telegramClient.execute(editMessageText);
         } catch (TelegramApiException e) {
-            log.error("Ошибка при отправке сообщения");
+            log.error("Ошибка при отправке сообщения {}", e.getMessage());
         }
     }
 }

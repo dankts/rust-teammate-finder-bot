@@ -22,6 +22,16 @@ public class AdminCommandHandler {
         String text = update.getMessage().getText();
         Long adminChatId = update.getMessage().getChatId();
 
+        if (text.equals("/admin")) {
+            sendMessageBot.sendMessage(adminChatId, """
+                            Доступные команды:
+                                /banUser chatId - забанить пользователя
+                                /unBanUser chatId - разбанить пользователя
+                                /getAllUserMessage message - отправить сообщение всем пользователям
+                    """);
+            return;
+        }
+
         if (text.startsWith("/banUser")) {
             String[] split = text.split(" ");
             Long chatId = Long.parseLong(split[1]);
