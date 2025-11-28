@@ -1,6 +1,7 @@
 # Maven / Gradle
 /target/
 /build/
+.mvn
 
 # IDE files
 .idea/
@@ -10,7 +11,6 @@
 .classpath
 .project
 .settings/
-.vscode/
 
 # OS files
 .DS_Store
